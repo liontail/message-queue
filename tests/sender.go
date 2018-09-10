@@ -5,7 +5,6 @@ import (
 	"message-queue/queue"
 	"message-queue/workerpool"
 
-	"github.com/astaxie/beego"
 	"github.com/streadway/amqp"
 )
 
@@ -148,32 +147,18 @@ func sender(senderID uint) {
 
 func main() {
 	tasks := []*workerpool.Task{
-		workerpool.NewTask(func() error {
+		workerpool.NewTask(func() {
 			sender(1)
-			return nil
 		}),
-		workerpool.NewTask(func() error {
+		workerpool.NewTask(func() {
 			sender(2)
-			return nil
 		}),
-		workerpool.NewTask(func() error {
+		workerpool.NewTask(func() {
 			sender(3)
-			return nil
 		}),
 	}
 
 	p := workerpool.NewPool(tasks, 3)
 	p.Run()
 
-	var numErrors int
-	for _, task := range p.Tasks {
-		if task.Err != nil {
-			beego.Error(task.Err)
-			numErrors++
-		}
-		if numErrors >= 10 {
-			beego.Error("Too many errors.")
-			break
-		}
-	}
 }
