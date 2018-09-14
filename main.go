@@ -3,40 +3,20 @@ package main
 import (
 	"message-queue/consumer"
 	"message-queue/workerpool"
+
+	"github.com/astaxie/beego"
 )
 
 func main() {
-
-	tasks := []*workerpool.Task{
-		workerpool.NewTask(func() {
-			c := consumer.Consumer{ID: 1}
+	workers := []*workerpool.Task{}
+	maxWorkers := beego.AppConfig.DefaultInt("MAX_WORKER", 1)
+	for i := 0; i < maxWorkers; i++ {
+		id := i + 1
+		workers = append(workers, workerpool.NewTask(func() {
+			c := consumer.Consumer{ID: id}
 			c.Consume()
-
-		}),
-		workerpool.NewTask(func() {
-			c := consumer.Consumer{ID: 2}
-			c.Consume()
-
-		}),
-		workerpool.NewTask(func() {
-			c := consumer.Consumer{ID: 3}
-			c.Consume()
-
-		}),
+		}))
 	}
-
-	p := workerpool.NewPool(tasks, 3)
+	p := workerpool.NewPool(workers, maxWorkers)
 	p.Run()
-
-	// var numErrors int
-	// for _, task := range p.Tasks {
-	// 	if task.Err != nil {
-	// 		beego.Error(task.Err)
-	// 		numErrors++
-	// 	}
-	// 	if numErrors >= 10 {
-	// 		beego.Error("Too many errors.")
-	// 		break
-	// 	}
-	// }
 }

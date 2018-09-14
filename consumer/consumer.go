@@ -3,10 +3,13 @@ package consumer
 import (
 	"log"
 	"message-queue/queue"
+	"strconv"
+
+	"github.com/astaxie/beego"
 )
 
 type Consumer struct {
-	ID uint
+	ID int
 }
 
 func (consumer *Consumer) failOnError(err error, msg string) {
@@ -26,23 +29,23 @@ func (consumer *Consumer) Consume() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"hello", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+		beego.AppConfig.String("queueName"), // name
+		false,                               // durable
+		false,                               // delete when unused
+		false,                               // exclusive
+		false,                               // no-wait
+		nil,                                 // arguments
 	)
 	consumer.failOnError(err, "Failed to declare a queue")
 
 	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
+		q.Name,                    // queue
+		strconv.Itoa(consumer.ID), // consumer tag
+		true,                      // auto-ack
+		false,                     // exclusive
+		false,                     // no-local
+		false,                     // no-wait
+		nil,                       // args
 	)
 	consumer.failOnError(err, "Failed to register a consumer")
 
@@ -50,7 +53,7 @@ func (consumer *Consumer) Consume() {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Consumer ID: %d: Received a message: ==>%s", consumer.ID, d.Body)
+			log.Printf("Consumer ID: %d: Received a message: ==> %s", consumer.ID, d.Body)
 		}
 	}()
 
