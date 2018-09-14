@@ -55,7 +55,7 @@ func main() {
 	tasks := []*workerpool.Task{
 		workerpool.NewTask(func() {
 			sender(1)
-		})
+		}),
 	}
 
 	p := workerpool.NewPool(tasks, len(tasks))
